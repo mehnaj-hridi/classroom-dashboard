@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFI    async function fetchMotion() {
+      try {
+        let res = await fetch("http://localhost:3002/motion");
+        let motion = await res.json();Motion Monitoring Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .container {
+      backdrop-filter: blur(10px);
+    }
+    
+    .main-title {
+      color: white;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .stats-card {
+      text-align: center;
+      padding: 2rem;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stats-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .stats-card:hover::before {
+      left: 100%;
+    }
+    
+    .stats-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+    
+    .stats-number {
+      font-size: 3rem;
+      font-weight: 800;
+      margin: 0.5rem 0;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stats-label {
+      color: #666;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .section-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    
+    .section-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 1.5rem;
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.3rem;
+    }
+    
+    .present-count {
+      color: #10b981;
+    }
+    
+    .motion-count {
+      color: #f59e0b;
+    }
+    
+    .attendance-item {
+      border-left: 5px solid #10b981;
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      margin: 1rem;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    .attendance-item:hover {
+      transform: translateX(10px);
+      box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
+    }
+    
+    .motion-item {
+      border-left: 5px solid #f59e0b;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      margin: 1rem;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    .motion-item:hover {
+      transform: translateX(10px);
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
+    }
+    
+    .badge {
+      background: linear-gradient(45deg, #10b981, #059669) !important;
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      border-radius: 25px;
+      padding: 0.8rem 2rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+    
+    .no-data {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 2rem;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    .icon-wrapper {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <h1 class="main-title mb-5">🏫 RFID & Motion Monitoring Dashboard</h1>
+
+    <!-- Statistics Row -->
+    <div class="row mb-5">
+      <div class="col-md-6 mb-4">
+        <div class="stats-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stats-label">Total Present Today</div>
+          <div id="totalPresent" class="stats-number">0</div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="stats-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-walking"></i>
+          </div>
+          <div class="stats-label">Motion Detected Today</div>
+          <div id="totalMotionDetected" class="stats-number">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Button -->
+    <div class="text-center mb-5">
+      <a href="index.html" class="btn btn-primary btn-lg">
+        <i class="fas fa-chart-line me-2"></i> View Noise Level Dashboard
+      </a>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+          <!-- Data Display Row -->
+    <div class="row">
+      <!-- Attendance Section -->
+      <div class="col-md-6">
+        <div class="section-card">
+          <h5 class="section-header">
+            <i class="fas fa-user-check me-2"></i> Attendance Log
+          </h5>
+          <div style="max-height: 400px; overflow-y: auto; padding: 1rem;">
+            <div id="attendanceList">
+              <p class="no-data">No attendance records yet...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motion Detection Section -->
+      <div class="col-md-6">
+        <div class="section-card">
+          <h5 class="section-header">
+            <i class="fas fa-running me-2"></i> Motion Detection Log
+          </h5>
+          <div style="max-height: 400px; overflow-y: auto; padding: 1rem;">
+            <div id="motionList">
+              <p class="no-data">No motion detected yet...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchStats() {
+      try {
+        let res = await fetch("http://localhost:3002/stats");
+        let stats = await res.json();
+
+        const totalPresentEl = document.getElementById("totalPresent");
+        const totalMotionEl = document.getElementById("totalMotionDetected");
+        
+        totalPresentEl.textContent = stats.totalPresent || 0;
+        totalMotionEl.textContent = stats.totalMotionDetected || 0;
+        
+        // Add pulse animation for updates
+        if (stats.totalPresent > 0) totalPresentEl.parentElement.classList.add('pulse-animation');
+        if (stats.totalMotionDetected > 0) totalMotionEl.parentElement.classList.add('pulse-animation');
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    }
+
+    async function fetchAttendance() {
+      try {
+        let res = await fetch("http://localhost:3002/attendance");
+        let attendance = await res.json();
+
+        let attendanceList = document.getElementById("attendanceList");
+        
+        if (attendance.length === 0) {
+          attendanceList.innerHTML = '<p class="no-data">No attendance records yet...</p>';
+        } else {
+          attendanceList.innerHTML = attendance.map(record => `
+            <div class="attendance-item p-3 mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong style="font-size: 1.1rem;">${record.name}</strong> 
+                  <span class="badge ms-2">Present</span>
+                  <small class="text-muted d-block mt-1">
+                    <i class="fas fa-id-card me-1"></i>${record.uid}
+                  </small>
+                </div>
+                <small class="text-muted">${record.time}</small>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error("Error fetching attendance:", error);
+      }
+    }
+
+    async function fetchMotion() {
+      try {
+        let res = await fetch("http://localhost:3002/motion");
+        let motion = await res.json();
+
+        let motionList = document.getElementById("motionList");
+        
+        if (motion.length === 0) {
+          motionList.innerHTML = '<p class="no-data">No motion detected yet...</p>';
+        } else {
+          motionList.innerHTML = motion.map(record => `
+            <div class="motion-item p-3 mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-walking me-2" style="color: #f59e0b;"></i>
+                  <strong>Motion Detected</strong>
+                </div>
+                <small class="text-muted">
+                  <i class="fas fa-clock me-1"></i>${record.time}
+                </small>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error("Error fetching motion:", error);
+      }
+    }
+
+    function updateDashboard() {
+      fetchStats();
+      fetchAttendance();
+      fetchMotion();
+    }
+
+    // Update every 2 seconds
+    setInterval(updateDashboard, 2000);
+    updateDashboard();
+  </script>
+</body>
+</html>
+
