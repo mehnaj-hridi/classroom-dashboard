@@ -23,7 +23,7 @@ const int adcMax = 1023;
 const float adcMid = adcMax / 2.0;      
 
 float calibration_offset = 40.0; 
-float threshold_dB = 30.0;       
+float threshold_dB = 60.0;   // set your threshold here
 
 // Last scanned UID (as string)
 String lastUID = "None";
@@ -90,14 +90,12 @@ void loop() {
       dB = 20.0 * log10(Vrms) + calibration_offset;
     }
 
-    // Debug prints
-    Serial.print("Vrms = ");
-    Serial.print(Vrms, 6);
-    Serial.print(" V, dB = ");
-    Serial.println(dB, 2);
+    // --- Serial output (for Node.js logging) ---
+    Serial.print("DB:");
+    Serial.println(dB, 1);
 
+    // --- LED control ---
     if (dB >= threshold_dB) {
-      Serial.println("⚡ Noise threshold exceeded → LED ON");
       digitalWrite(ledPin, HIGH);
       lcd.clear();
       lcd.setCursor(0, 0);
