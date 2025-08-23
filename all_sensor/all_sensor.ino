@@ -9,10 +9,6 @@
 #define RST_PIN 9
 MFRC522 rfid(SS_PIN, RST_PIN);
 
-// ----- PIR & Buzzer Pins -----
-int pirPin = 2;       
-int buzzerPin = 4;    
-
 // ----- Sound Sensor + LED -----
 const int micPin = A0;    
 const int ledPin = 6;     
@@ -27,11 +23,10 @@ const int adcMax = 1023;
 const float adcMid = adcMax / 2.0;      
 
 float calibration_offset = 40.0; 
-float threshold_dB = 50.0;       
+float threshold_dB = 30.0;       
 
-// Attendance variables
-int presentCount = 0;
-int absentCount = 10;  // Example: total students = 10, will decrease as present are marked
+// Last scanned UID (as string)
+String lastUID = "None";
 
 // To avoid showing sound too often
 unsigned long lastNoiseTime = 0;
@@ -43,8 +38,6 @@ void setup() {
   rfid.PCD_Init();
   Serial.println("Place your card near the reader...");
 
-  pinMode(pirPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
   pinMode(ledPin, OUTPUT);
 
   // LCD setup
@@ -59,27 +52,17 @@ void setup() {
 }
 
 void loop() {
-  // -------- PIR Motion Detection --------
-  int motion = digitalRead(pirPin);
-  if (motion == HIGH) {
-    Serial.println("Motion detected!");
-    digitalWrite(buzzerPin, HIGH);  
-    delay(100); 
-    digitalWrite(buzzerPin, LOW);   
-  }
-
-  // -------- RFID Reading (Attendance) --------
+  // -------- RFID Reading (UID Display) --------
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
     Serial.print("UID: ");
+    lastUID = ""; // reset UID string
     for (byte i = 0; i < rfid.uid.size; i++) {
-      Serial.print(rfid.uid.uidByte[i] < 0x10 ? "0" : "");
-      Serial.print(rfid.uid.uidByte[i], HEX);
-      if (i != rfid.uid.size - 1) Serial.print(":");
+      if (rfid.uid.uidByte[i] < 0x10) lastUID += "0";
+      lastUID += String(rfid.uid.uidByte[i], HEX);
+      if (i != rfid.uid.size - 1) lastUID += ":";
     }
-    Serial.println();
-
-    presentCount++;
-    if (absentCount > 0) absentCount--; 
+    lastUID.toUpperCase();
+    Serial.println(lastUID);
 
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -107,11 +90,18 @@ void loop() {
       dB = 20.0 * log10(Vrms) + calibration_offset;
     }
 
+    // Debug prints
+    Serial.print("Vrms = ");
+    Serial.print(Vrms, 6);
+    Serial.print(" V, dB = ");
+    Serial.println(dB, 2);
+
     if (dB >= threshold_dB) {
+      Serial.println("⚡ Noise threshold exceeded → LED ON");
       digitalWrite(ledPin, HIGH);
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Noise Level:");
+      lcd.print("Noise level HIGH!");
       lcd.setCursor(0, 1);
       lcd.print(dB, 1);
       lcd.print(" dB");
@@ -124,18 +114,16 @@ void loop() {
 
   // -------- LCD Display --------
   if (showingNoise && millis() - lastNoiseTime > 1000) {
-    // After 1 sec, return to attendance view
+    // After 1 sec, return to UID display
     showingNoise = false;
     lcd.clear();
   }
 
   if (!showingNoise) {
     lcd.setCursor(0, 0);
-    lcd.print("Present: ");
-    lcd.print(presentCount);
+    lcd.print("Last UID:");
     lcd.setCursor(0, 1);
-    lcd.print("Absent:  ");
-    lcd.print(absentCount);
+    lcd.print(lastUID);
   }
 
   delay(100);
