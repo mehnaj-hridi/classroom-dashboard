@@ -7,13 +7,9 @@
 #define RST_PIN 9
 MFRC522 rfid(SS_PIN, RST_PIN);
 
-// ----- PIR & Buzzer Pins -----
-int pirPin = 2;       // PIR output pin
-int buzzerPin = 4;    // Buzzer pin
-
 // ----- Sound Sensor + LED -----
 const int micPin = A0;    // Analog input for microphone
-const int ledPin = 6;     // LED moved to D6 (avoid SPI conflict)
+const int ledPin = 6;     // LED on pin 6 (PWM capable)
 
 // Settings
 const unsigned long sampleWindow = 200; // ms for RMS averaging
@@ -28,42 +24,39 @@ float threshold_dB = 30.0;       // LED turns on at this dB
 void setup() {
   // RFID setup
   Serial.begin(115200);
+  Serial.println("=== System Starting... ===");
+  Serial.println("Initializing RFID...");
   SPI.begin();
   rfid.PCD_Init();
-  Serial.println("Place your card near the reader...");
-
-  // PIR & buzzer setup
-  pinMode(pirPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
+  Serial.println("RFID Initialized! Place your card near the reader.");
 
   // LED setup
   pinMode(ledPin, OUTPUT);
+  Serial.println("LED pin set as OUTPUT.");
 }
 
 void loop() {
-  // -------- PIR Motion Detection --------
-  int motion = digitalRead(pirPin);
-  if (motion == HIGH) {
-    Serial.println("Motion detected!");
-    digitalWrite(buzzerPin, HIGH);  
-    delay(100); // buzz briefly
-    digitalWrite(buzzerPin, LOW);   
-  }
+  Serial.println("\n--- Loop Started ---");
 
   // -------- RFID Reading --------
+  Serial.println("Checking for RFID card...");
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-    Serial.print("UID: ");
+    Serial.print("Card detected! UID: ");
     for (byte i = 0; i < rfid.uid.size; i++) {
       Serial.print(rfid.uid.uidByte[i] < 0x10 ? "0" : "");
       Serial.print(rfid.uid.uidByte[i], HEX);
       if (i != rfid.uid.size - 1) Serial.print(":");
     }
     Serial.println();
+    Serial.println("Card read complete.");
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
+  } else {
+    Serial.println("No card detected.");
   }
 
   // -------- Sound Level Measurement --------
+  Serial.println("Starting sound level measurement...");
   unsigned long startMillis = millis();
   unsigned long sampleCount = 0;
   double sumSquares = 0;
@@ -74,6 +67,8 @@ void loop() {
     sumSquares += centered * centered;
     sampleCount++;
   }
+  Serial.print("Collected samples: ");
+  Serial.println(sampleCount);
 
   if (sampleCount > 0) {
     double meanSquare = sumSquares / sampleCount;
@@ -93,11 +88,16 @@ void loop() {
     Serial.println(" dB");
 
     if (dB >= threshold_dB) {
+      Serial.println("Sound above threshold -> Turning LED ON");
       digitalWrite(ledPin, HIGH);
     } else {
+      Serial.println("Sound below threshold -> Turning LED OFF");
       digitalWrite(ledPin, LOW);
     }
+  } else {
+    Serial.println("No samples collected!");
   }
 
-  delay(50); // short pause
+  Serial.println("--- Loop End ---");
+  delay(500); // make output more readable
 }
