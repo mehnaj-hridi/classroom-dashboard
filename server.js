@@ -11,6 +11,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Database
 const db = new sqlite3.Database('./noiseLogs.db');
+db.run("DROP TABLE IF EXISTS logs");
 db.run(`
   CREATE TABLE IF NOT EXISTS logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +22,7 @@ db.run(`
 `);
 
 // Serial connection to Arduino (update COM port)
-const port = new SerialPort({ path: 'COM7', baudRate: 9600 });
+const port = new SerialPort({ path: 'COM18', baudRate: 9600 });
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
 parser.on('data', (data) => {
@@ -30,7 +31,7 @@ parser.on('data', (data) => {
   if (data.startsWith("DB:")) {
     let dBValue = parseFloat(data.replace("DB:", "").trim());
     if (!isNaN(dBValue)) {
-      const status = dBValue >= 60 ? "Noise" : "Quiet"; // threshold = 60 dB
+      const status = dBValue >= 30 ? "Noise" : "Quiet"; // threshold = 60 dB
       const time = new Date().toLocaleString();
 
       db.run("INSERT INTO logs (time, dB, status) VALUES (?, ?, ?)", [time, dBValue, status]);

@@ -23,7 +23,7 @@ const int adcMax = 1023;
 const float adcMid = adcMax / 2.0;      
 
 float calibration_offset = 40.0; 
-float threshold_dB = 60.0;   // set your threshold here
+float threshold_dB = 30.0;   // set your threshold here
 
 // Last scanned UID (as string)
 String lastUID = "None";
