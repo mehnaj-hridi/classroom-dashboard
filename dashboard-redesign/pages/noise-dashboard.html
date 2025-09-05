@@ -1,0 +1,53 @@
+<div class="noise-dashboard-page">
+    <h2 class="mb-4">
+        <i class="fas fa-volume-up me-2"></i>Noise Level Dashboard
+    </h2>
+    
+    <!-- Connection Status -->
+    <div class="connection-status">
+        <span id="noiseConnectionStatus" class="status-indicator status-offline"></span>
+        <span id="noiseConnectionText">Connecting to noise server...</span>
+    </div>
+
+    <!-- Current Status -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="stats-card" id="currentNoiseCard">
+                <div class="icon-wrapper">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+                <div class="stats-label">Current Sound Level</div>
+                <div id="noiseCurrentDB" class="stats-number">-- dB</div>
+                <div id="noiseCurrentStatus" class="stats-label">Waiting...</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stats-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-label">Last Updated</div>
+                <div id="noiseLastDetected" class="stats-number" style="font-size: 1.5rem;">Never</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Log -->
+    <div class="section-card">
+        <h5 class="section-header">
+            <i class="fas fa-list me-2"></i>Sound Level History
+        </h5>
+        <div class="scroll-container" style="max-height: 500px;">
+            <div id="noiseLogsList">
+                <p class="no-data">No sound logs yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Update Info -->
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            Last updated: <span id="noiseLastUpdate">Never</span>
+        </small>
+    </div>
+</div>

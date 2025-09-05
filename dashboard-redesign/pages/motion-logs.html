@@ -1,0 +1,61 @@
+<div class="motion-logs-page">
+    <h2 class="mb-4">
+        <i class="fas fa-walking me-2"></i>All Motion Logs
+    </h2>
+    
+    <!-- Connection Status -->
+    <div class="connection-status">
+        <span id="motionConnectionStatus" class="status-indicator status-offline"></span>
+        <span id="motionConnectionText">Connecting to server...</span>
+    </div>
+
+    <!-- Motion Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-walking"></i>
+                </div>
+                <div class="stats-label">Total Today</div>
+                <div id="motionTotalToday" class="stats-number">0</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-label">Last Detection</div>
+                <div id="motionLastTime" class="stats-number" style="font-size: 1.5rem;">Never</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-label">Detection Rate</div>
+                <div id="motionRate" class="stats-number" style="font-size: 1.8rem;">0/hr</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motion Logs -->
+    <div class="section-card">
+        <h5 class="section-header">
+            <i class="fas fa-list me-2"></i>Motion Detection History
+        </h5>
+        <div class="scroll-container" style="max-height: 500px;">
+            <div id="motionLogsList">
+                <p class="no-data">No motion logs yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Update Info -->
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            Last updated: <span id="motionLastUpdate">Never</span>
+        </small>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+{
+  "name": "my-v0-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'no build script'"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "parser": "^0.1.4",
+    "path": "^0.12.7",
+    "serialport": "^13.0.0",
+    "sqlite3": "^5.1.7"
+  }
+}

@@ -10,20 +10,36 @@
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 // ----- Sound Sensor + LED -----
-const int micPin = A0;    
-const int ledPin = 6;     
+const int micPin = A0;
+const int ledPin = 6;
 
-// LCD (I2C address may be 0x27 or 0x3F → check with scanner)
+// ----- Ultrasonic + Buzzer -----
+#define TRIG_PIN 7  
+#define ECHO_PIN 8
+#define BUZZER 5
+
+long duration;
+int distance;
+int prevDistance = 0;
+
+// LCD 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Settings for Sound
-const unsigned long sampleWindow = 200; 
-const float referenceVoltage = 5.0;     
+const unsigned long sampleWindow = 200;
+const float referenceVoltage = 5.0;
 const int adcMax = 1023;
-const float adcMid = adcMax / 2.0;      
+const float adcMid = adcMax / 2.0;
 
-float calibration_offset = 40.0; 
-float threshold_dB = 30.0;   // set your threshold here
+float calibration_offset = 40.0;
+float threshold_dB = 35.0;  
+
+// Attendance system
+const int totalStudents = 4;
+int presentCount = 0;
+int absentCount = totalStudents;
+String scannedUIDs[10];  // store scanned UIDs (max 10 cards for now)
+int scannedCount = 0;
 
 // Last scanned UID (as string)
 String lastUID = "None";
@@ -32,6 +48,14 @@ String lastUID = "None";
 unsigned long lastNoiseTime = 0;
 bool showingNoise = false;
 
+// --- check if UID is already scanned ---
+bool isAlreadyScanned(String uid) {
+  for (int i = 0; i < scannedCount; i++) {
+    if (scannedUIDs[i] == uid) return true;
+  }
+  return false;
+}
+
 void setup() {
   Serial.begin(9600);
   SPI.begin();
@@ -39,6 +63,9 @@ void setup() {
   Serial.println("Place your card near the reader...");
 
   pinMode(ledPin, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(BUZZER, OUTPUT);
 
   // LCD setup
   lcd.init();
@@ -52,17 +79,34 @@ void setup() {
 }
 
 void loop() {
-  // -------- RFID Reading (UID Display) --------
+  // -------- RFID Reading (Attendance) --------
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-    Serial.print("UID: ");
-    lastUID = ""; // reset UID string
+    lastUID = "";
     for (byte i = 0; i < rfid.uid.size; i++) {
       if (rfid.uid.uidByte[i] < 0x10) lastUID += "0";
       lastUID += String(rfid.uid.uidByte[i], HEX);
       if (i != rfid.uid.size - 1) lastUID += ":";
     }
     lastUID.toUpperCase();
+
+    Serial.print("UID: ");
     Serial.println(lastUID);
+
+    if (!isAlreadyScanned(lastUID)) {
+      scannedUIDs[scannedCount++] = lastUID;
+      presentCount++;
+      absentCount = totalStudents - presentCount;
+    }
+
+    // LCD show attendance
+    lcd.clear();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Present:");
+    lcd.print(presentCount);
+    lcd.setCursor(0, 1);
+    lcd.print("Absent:");
+    lcd.print(absentCount);
 
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -90,11 +134,9 @@ void loop() {
       dB = 20.0 * log10(Vrms) + calibration_offset;
     }
 
-    // --- Serial output (for Node.js logging) ---
     Serial.print("DB:");
     Serial.println(dB, 1);
 
-    // --- LED control ---
     if (dB >= threshold_dB) {
       digitalWrite(ledPin, HIGH);
       lcd.clear();
@@ -110,19 +152,54 @@ void loop() {
     }
   }
 
-  // -------- LCD Display --------
-  if (showingNoise && millis() - lastNoiseTime > 1000) {
-    // After 1 sec, return to UID display
-    showingNoise = false;
+  // -------- Ultrasonic Reading + Buzzer --------
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  duration = pulseIn(ECHO_PIN, HIGH);
+  distance = duration * 0.034 / 2;
+
+  bool motionDetected = false;
+  if (prevDistance != 0 && abs(distance - prevDistance) > 5) {
+    digitalWrite(BUZZER, HIGH);  
+    delay(300);
+    digitalWrite(BUZZER, LOW);
+    motionDetected = true;
+
     lcd.clear();
-  }
-
-  if (!showingNoise) {
     lcd.setCursor(0, 0);
-    lcd.print("Last UID:");
+    lcd.print("Back Door");
     lcd.setCursor(0, 1);
-    lcd.print(lastUID);
+    lcd.print("Movement!");
+
+    Serial.print("Motion detected. Distance: ");
+    Serial.print(distance);
+    Serial.println(" cm");
+  } else {
+    digitalWrite(BUZZER, LOW);  
+  }
+  prevDistance = distance;
+
+  // -------- LCD Display --------
+  if (!motionDetected) {  
+    if (showingNoise && millis() - lastNoiseTime > 1000) {
+      showingNoise = false;
+      lcd.clear();
+    }
+
+    if (!showingNoise) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Present:");
+      lcd.print(presentCount);
+      lcd.setCursor(0, 1);
+      lcd.print("Absent:");
+      lcd.print(absentCount);
+    }
   }
 
-  delay(100);
+  delay(500);
 }

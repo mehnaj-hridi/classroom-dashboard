@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Database
 const db = new sqlite3.Database('./noiseLogs.db');
-db.run("DROP TABLE IF EXISTS logs");
+// db.run("DROP TABLE IF EXISTS logs");
 db.run(`
   CREATE TABLE IF NOT EXISTS logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
