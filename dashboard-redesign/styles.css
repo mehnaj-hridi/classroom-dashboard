@@ -57,7 +57,7 @@ body {
 /* Increase sidebar width slightly */
 .sidebar {
   position: fixed;
-  top: 56px;
+  top: 74px;
   left: 0;
   width: 240px; /* slightly increased */
   height: calc(100vh - 56px);
@@ -123,6 +123,7 @@ body {
 .main-content {
   margin-left: 240px;
   margin-top: 56px;
+  padding: 2rem 2.5rem 2.5rem;
   min-height: calc(100vh - 56px);
   transition: margin-left var(--transition);
   background: var(--color-bg);
