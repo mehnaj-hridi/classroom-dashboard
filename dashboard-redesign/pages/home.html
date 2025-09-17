@@ -1,0 +1,100 @@
+<div class="home-page">
+    <h2 class="mb-4">
+        <i class="fas fa-home me-2"></i>Dashboard Overview
+    </h2>
+    
+    <!-- Connection Status -->
+    <div class="connection-status">
+        <span id="homeConnectionStatus" class="status-indicator status-offline"></span>
+        <span id="homeConnectionText">Connecting to servers...</span>
+    </div>
+
+    <!-- Duplicate Check-In Banner (hidden by default) -->
+    <div id="homeDuplicateBanner" style="display:none;margin-bottom:1.25rem;border:1px solid #e2e8f0;border-left:6px solid #f59e0b;background:#fff8eb;padding:12px 16px;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.05);">
+        <div style="font-weight:600;color:#b45309;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+            <i class="fas fa-clone"></i>
+            <span>Recent duplicate check-ins detected</span>
+            <button id="homeDuplicateDismiss" style="margin-left:auto;background:transparent;border:none;color:#b45309;font-size:16px;line-height:1;cursor:pointer;" aria-label="Dismiss">&times;</button>
+        </div>
+        <div id="homeDuplicateItems" style="margin-top:6px;font-size:.75rem;color:#5b5b5b;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card" id="homeAttendanceCard">
+                <div class="icon-wrapper">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-label">Students Present</div>
+                <div id="homeTotalPresent" class="stats-number">0</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card" id="homeAbsentCard">
+                <div class="icon-wrapper">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stats-label">Students Absent</div>
+                <div id="homeTotalAbsent" class="stats-number">0</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card" id="homeMotionCard">
+                <div class="icon-wrapper">
+                    <i class="fas fa-walking"></i>
+                </div>
+                <div class="stats-label">Last Motion</div>
+                <div id="homeLastMotion" class="stats-number" style="font-size: 1.5rem;">Never</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card" id="homeNoiseCard">
+                <div class="icon-wrapper">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+                <div class="stats-label">Current Noise Level</div>
+                <div id="homeCurrentNoise" class="stats-number" style="font-size: 1.8rem;">-- dB</div>
+                <div id="homeNoiseStatus" class="stats-label">Waiting...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Recent Attendance -->
+        <div class="col-md-6">
+            <div class="section-card">
+                <h5 class="section-header">
+                    <i class="fas fa-user-check me-2"></i>Recent Attendance
+                </h5>
+                <div class="scroll-container">
+                    <div id="homeAttendanceList">
+                        <p class="no-data">No attendance records yet...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Motion Detection -->
+        <div class="col-md-6">
+            <div class="section-card">
+                <h5 class="section-header">
+                    <i class="fas fa-running me-2"></i>Recent Motion Detection
+                </h5>
+                <div class="scroll-container">
+                    <div id="homeMotionList">
+                        <p class="no-data">No motion detected yet...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Update Info -->
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            Last updated: <span id="homeLastUpdate">Never</span>
+        </small>
+    </div>
+</div>

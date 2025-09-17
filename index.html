@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classroom Noise Dashboard</title>
+  <title>Classroom Sound Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <style>
-    body {
-      background-color: #f8f9fa;
-    }
+    body { background-color: #f8f9fa; }
     .status-card {
       text-align: center;
       padding: 20px;
@@ -17,38 +15,39 @@
       background: white;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
-    .noise-on {
+    .noise {
       color: #dc3545; /* Red */
+      font-weight: bold;
     }
-    .noise-off {
+    .quiet {
       color: #28a745; /* Green */
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container py-4">
-    <h1 class="text-center mb-4">📊 Classroom Noise Dashboard</h1>
+    <h1 class="text-center mb-4">📊 Classroom Sound Dashboard</h1>
 
-    <!-- Status Card -->
+    <!-- Current Status -->
     <div class="status-card mb-4">
-      <h3>Current Status</h3>
-      <div id="noiseStatus" class="fs-1 noise-off">
-        <i class="fas fa-volume-mute"></i> Quiet
-      </div>
-      <p class="mt-2 text-muted">Last Detected: <span id="lastDetected">-</span></p>
+      <h3>Current Sound Level</h3>
+      <div id="currentDB" class="fs-2 quiet">-- dB</div>
+      <div id="currentStatus" class="fs-3 text-muted">Waiting...</div>
+      <p class="mt-2 text-muted">Last Updated: <span id="lastDetected">-</span></p>
     </div>
 
     <!-- Log Table -->
     <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white">
-        Noise Detection Log
-      </div>
+      <div class="card-header bg-primary text-white">Sound Log</div>
       <div class="card-body p-0">
         <table class="table table-striped m-0">
           <thead class="table-light">
             <tr>
               <th>ID</th>
               <th>Time</th>
+              <th>Sound Level (dB)</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="logTable"></tbody>
@@ -63,36 +62,33 @@
         let res = await fetch("http://localhost:3000/logs");
         let logs = await res.json();
 
-        // Update table
+        if (logs.length > 0) {
+          let latest = logs[0];
+          document.getElementById("currentDB").textContent = latest.dB.toFixed(1) + " dB";
+          document.getElementById("lastDetected").textContent = latest.time;
+
+          let statusEl = document.getElementById("currentStatus");
+          if (latest.status === "Noise") {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Noise Warning!';
+            statusEl.className = "fs-3 noise";
+          } else {
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Quiet';
+            statusEl.className = "fs-3 quiet";
+          }
+        }
+
+        // Fill log table
         let table = document.getElementById("logTable");
         table.innerHTML = logs.map(log => `
           <tr>
             <td>${log.id}</td>
             <td>${log.time}</td>
+            <td>${log.dB.toFixed(1)}</td>
+            <td class="${log.status === 'Noise' ? 'noise' : 'quiet'}">${log.status}</td>
           </tr>
         `).join('');
-
-        // Update current status
-        let status = document.getElementById("noiseStatus");
-        let lastDetected = document.getElementById("lastDetected");
-
-        if (logs.length > 0) {
-          lastDetected.textContent = logs[0].time;
-
-          let lastEventTime = new Date(logs[0].time);
-          let now = new Date();
-          let secondsAgo = (now - lastEventTime) / 1000;
-
-          if (secondsAgo < 5) {
-            status.className = "fs-1 noise-on";
-            status.innerHTML = '<i class="fas fa-volume-up"></i> Noise Detected';
-          } else {
-            status.className = "fs-1 noise-off";
-            status.innerHTML = '<i class="fas fa-volume-mute"></i> Quiet';
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching logs:", error);
+      } catch (err) {
+        console.error("Error fetching logs:", err);
       }
     }
 

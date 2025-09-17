@@ -3,17 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RFI    async function fetchMotion() {
-      try {
-        let res = await fetch("http://localhost:3002/motion");
-        let motion = await res.json();Motion Monitoring Dashboard</title>
+  <title>RFID Motion Monitoring Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: rgb(240, 224, 255);
     }
     
     .container {
@@ -21,7 +18,7 @@
     }
     
     .main-title {
-      color: white;
+      color: #764ba2;
       text-align: center;
       margin-bottom: 2rem;
       font-weight: 700;
@@ -69,6 +66,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      transition: all 0.3s ease;
     }
     
     .stats-label {
@@ -96,26 +94,28 @@
       font-size: 1.3rem;
     }
     
-    .present-count {
-      color: #10b981;
-    }
-    
-    .motion-count {
-      color: #f59e0b;
-    }
-    
     .attendance-item {
       border-left: 5px solid #10b981;
       background: linear-gradient(135deg, #ecfdf5, #d1fae5);
       margin: 1rem;
       border-radius: 15px;
       transition: all 0.3s ease;
-      animation: slideIn 0.5s ease-out;
+      animation: slideInLeft 0.5s ease-out;
     }
     
     .attendance-item:hover {
       transform: translateX(10px);
       box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
+    }
+    
+    .attendance-item.duplicate {
+      border-left-color: #f59e0b;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+    
+    .attendance-item.unauthorized {
+      border-left-color: #ef4444;
+      background: linear-gradient(135deg, #fef2f2, #fecaca);
     }
     
     .motion-item {
@@ -124,7 +124,7 @@
       margin: 1rem;
       border-radius: 15px;
       transition: all 0.3s ease;
-      animation: slideIn 0.5s ease-out;
+      animation: slideInRight 0.5s ease-out;
     }
     
     .motion-item:hover {
@@ -132,11 +132,19 @@
       box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
     }
     
+    .motion-item.new {
+      animation: pulse 1s ease-in-out 3;
+    }
+    
     .badge {
       background: linear-gradient(45deg, #10b981, #059669) !important;
       border-radius: 20px;
       padding: 0.5rem 1rem;
       font-size: 0.8rem;
+    }
+    
+    .badge.warning {
+      background: linear-gradient(45deg, #f59e0b, #d97706) !important;
     }
     
     .btn-primary {
@@ -162,25 +170,150 @@
       padding: 2rem;
     }
     
-    @keyframes slideIn {
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-online {
+      background-color: #10b981;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-offline {
+      background-color: #ef4444;
+    }
+    
+    .last-update {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+      margin-top: 1rem;
+    }
+    
+    .connection-status {
+      background: rgba(255, 255, 255, 0.749);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .connection-status span {
+      color: #764ba2;
+      font-weight: 500;
+    }
+    
+    /* Alert toast styles */
+    .alert-toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      max-width: 350px;
+    }
+    
+    .alert-toast {
+      background: white;
+      border-left: 5px solid #f59e0b;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: flex-start;
+      animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+    }
+    
+    .alert-toast-icon {
+      font-size: 1.5rem;
+      color: #f59e0b;
+      margin-right: 0.75rem;
+    }
+    
+    .alert-toast-content {
+      flex: 1;
+    }
+    
+    .alert-toast-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: #333;
+    }
+    
+    .alert-toast-message {
+      color: #666;
+      margin: 0;
+    }
+    
+    .alert-toast-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      color: #999;
+      cursor: pointer;
+      margin-left: 0.5rem;
+    }
+    
+    @keyframes slideInLeft {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateX(-30px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
       }
     }
     
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+      0%, 100% { 
+        transform: scale(1); 
+        opacity: 1; 
+      }
+      50% { 
+        transform: scale(1.05); 
+        opacity: 0.8; 
+      }
     }
     
-    .pulse-animation {
-      animation: pulse 2s infinite;
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+    
+    .gentle-pulse {
+      animation: gentlePulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes gentlePulse {
+      0%, 100% { 
+        transform: scale(1);
+      }
+      50% { 
+        transform: scale(1.02);
+      }
     }
     
     .icon-wrapper {
@@ -195,16 +328,60 @@
       margin: 0 auto 1rem;
       font-size: 1.5rem;
     }
+    
+    .error-message {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 1rem;
+      border-radius: 10px;
+      margin: 1rem;
+      border-left: 4px solid #dc2626;
+    }
+    
+    .scroll-container {
+      max-height: 400px; 
+      overflow-y: auto; 
+      padding: 1rem;
+      scroll-behavior: smooth;
+    }
+    
+    /* Custom scrollbar */
+    .scroll-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(45deg, #764ba2, #667eea);
+    }
   </style>
 </head>
 <body>
   <div class="container py-5">
-    <h1 class="main-title mb-5">🏫 RFID & Motion Monitoring Dashboard</h1>
+    <h1 class="main-title mb-4">🏫 RFID & Motion Monitoring Dashboard</h1>
+
+    <!-- Alert Toast Container -->
+    <div class="alert-toast-container" id="alertContainer"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status text-center">
+      <span id="connectionStatus" class="status-indicator status-offline"></span>
+      <span id="connectionText">Connecting to server...</span>
+    </div>
 
     <!-- Statistics Row -->
     <div class="row mb-5">
       <div class="col-md-6 mb-4">
-        <div class="stats-card">
+        <div class="stats-card" id="attendanceCard">
           <div class="icon-wrapper">
             <i class="fas fa-users"></i>
           </div>
@@ -213,7 +390,7 @@
         </div>
       </div>
       <div class="col-md-6 mb-4">
-        <div class="stats-card">
+        <div class="stats-card" id="motionCard">
           <div class="icon-wrapper">
             <i class="fas fa-walking"></i>
           </div>
@@ -232,15 +409,13 @@
 
     <!-- Main Content Row -->
     <div class="row">
-          <!-- Data Display Row -->
-    <div class="row">
       <!-- Attendance Section -->
       <div class="col-md-6">
         <div class="section-card">
           <h5 class="section-header">
             <i class="fas fa-user-check me-2"></i> Attendance Log
           </h5>
-          <div style="max-height: 400px; overflow-y: auto; padding: 1rem;">
+          <div class="scroll-container">
             <div id="attendanceList">
               <p class="no-data">No attendance records yet...</p>
             </div>
@@ -252,9 +427,9 @@
       <div class="col-md-6">
         <div class="section-card">
           <h5 class="section-header">
-            <i class="fas fa-running me-2"></i> Motion Detection Log
+            <i class="fas fa-running me-2"></i> Back Door Motion Detection
           </h5>
-          <div style="max-height: 400px; overflow-y: auto; padding: 1rem;">
+          <div class="scroll-container">
             <div id="motionList">
               <p class="no-data">No motion detected yet...</p>
             </div>
@@ -262,86 +437,240 @@
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- Last Update Info -->
+    <div class="last-update">
+      Last updated: <span id="lastUpdate">Never</span>
     </div>
   </div>
 
   <script>
+    let isOnline = false;
+    let lastAttendanceCount = 0;
+    let lastAttendanceData = [];
+    let lastMotionData = [];
+    let updateInterval;
+    let knownDuplicates = new Set();
+    let knownUnauthorized = new Set();
+
+    // Function to check for duplicate attempts and show alerts
+    async function checkAndShowDuplicates() {
+      try {
+        let res = await fetch("http://localhost:3002/duplicates");
+        if (!res.ok) throw new Error('Network response was not ok');
+        
+        let duplicates = await res.json();
+        
+        // Show alerts for any new duplicates
+        duplicates.forEach(duplicate => {
+          const key = `${duplicate.uid}-${duplicate.timestamp}`;
+          if (!knownDuplicates.has(key)) {
+            showDuplicateAlert(duplicate.name, duplicate.uid);
+            knownDuplicates.add(key);
+          }
+        });
+        
+        // Clear the duplicates from server after processing
+        if (duplicates.length > 0) {
+          await fetch("http://localhost:3002/duplicates/clear", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+        }
+        
+      } catch (error) {
+        console.error("Error checking duplicates:", error);
+      }
+    }
+
+    // Function to show alert popup for duplicate attendance
+    function showDuplicateAlert(name, uid) {
+      alert(`⚠️ DUPLICATE CHECK-IN ALERT!\n\n${name} (${uid}) has already checked in today!`);
+    }
+
+    // Function to show alert popup for unauthorized entry
+    function showUnauthorizedAlert(uid) {
+      alert(`🚨 UNAUTHORIZED ENTRY ALERT!\n\nUnknown UID: ${uid}\nAccess denied!`);
+    }
+
+    function updateConnectionStatus(online) {
+      const statusIndicator = document.getElementById('connectionStatus');
+      const statusText = document.getElementById('connectionText');
+      
+      if (online) {
+        statusIndicator.className = 'status-indicator status-online';
+        statusText.textContent = 'Connected to server';
+        isOnline = true;
+      } else {
+        statusIndicator.className = 'status-indicator status-offline';
+        statusText.textContent = 'Connection lost - Retrying...';
+        isOnline = false;
+      }
+    }
+
     async function fetchStats() {
       try {
         let res = await fetch("http://localhost:3002/stats");
+        if (!res.ok) throw new Error('Network response was not ok');
+        
         let stats = await res.json();
+        updateConnectionStatus(stats.connected || true);
 
         const totalPresentEl = document.getElementById("totalPresent");
-        const totalMotionEl = document.getElementById("totalMotionDetected");
+        const attendanceCard = document.getElementById("attendanceCard");
+        const motionCard = document.getElementById("motionCard");
         
-        totalPresentEl.textContent = stats.totalPresent || 0;
-        totalMotionEl.textContent = stats.totalMotionDetected || 0;
+        // Smooth update for attendance with gentle animation
+        if (stats.totalPresent !== lastAttendanceCount) {
+          attendanceCard.innerHTML = `
+            <div class="icon-wrapper">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-number gentle-pulse" id="totalPresent">${stats.totalPresent}</div>
+            <div class="stats-label">Students Present</div>
+          `;
+          lastAttendanceCount = stats.totalPresent;
+        }
         
-        // Add pulse animation for updates
-        if (stats.totalPresent > 0) totalPresentEl.parentElement.classList.add('pulse-animation');
-        if (stats.totalMotionDetected > 0) totalMotionEl.parentElement.classList.add('pulse-animation');
+        // Update motion card to show last motion time instead of count
+        motionCard.innerHTML = `
+          <div class="icon-wrapper">
+            <i class="fas fa-walking"></i>
+          </div>
+          <div class="stats-number" style="font-size: 1.5rem;">${stats.lastMotionTime || 'Never'}</div>
+          <div class="stats-label">Last Motion at Back Door</div>
+        `;
+        
       } catch (error) {
         console.error("Error fetching stats:", error);
+        updateConnectionStatus(false);
       }
     }
 
     async function fetchAttendance() {
       try {
         let res = await fetch("http://localhost:3002/attendance");
+        if (!res.ok) throw new Error('Network response was not ok');
+        
         let attendance = await res.json();
-
         let attendanceList = document.getElementById("attendanceList");
+        
+        // Check if data actually changed to avoid unnecessary DOM updates
+        if (JSON.stringify(attendance) === JSON.stringify(lastAttendanceData)) {
+          return; // No changes, skip update
+        }
+        
+        // Check for unauthorized entries
+        const currentUnauthorized = new Set();
+        
+        attendance.forEach(record => {
+          // Check for unauthorized entries
+          if (record.name === 'Unauthorized entry') {
+            currentUnauthorized.add(record.uid);
+            
+            // Show alert for new unauthorized entries
+            if (!knownUnauthorized.has(record.uid)) {
+              showUnauthorizedAlert(record.uid);
+            }
+          }
+        });
+        
+        // Update known sets
+        knownUnauthorized = new Set([...knownUnauthorized, ...currentUnauthorized]);
+        
+        lastAttendanceData = attendance;
         
         if (attendance.length === 0) {
           attendanceList.innerHTML = '<p class="no-data">No attendance records yet...</p>';
         } else {
-          attendanceList.innerHTML = attendance.map(record => `
-            <div class="attendance-item p-3 mb-2">
+          attendanceList.innerHTML = attendance.map(record => {
+            const isUnauthorized = record.name === 'Unauthorized entry';
+            
+            let badgeClass, badgeText, itemClass, displayName;
+            
+            if (isUnauthorized) {
+              badgeClass = 'badge';
+              badgeText = 'Unauthorized';
+              itemClass = 'attendance-item unauthorized';
+              displayName = '🚨 Unauthorized Entry';
+            } else {
+              badgeClass = 'badge';
+              badgeText = 'Present';
+              itemClass = 'attendance-item';
+              displayName = record.name;
+            }
+            
+            return `
+            <div class="${itemClass} p-3 mb-2">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <strong style="font-size: 1.1rem;">${record.name}</strong> 
-                  <span class="badge ms-2">Present</span>
+                  <strong style="font-size: 1.1rem;">${displayName}</strong> 
+                  <span class="${badgeClass} ms-2">${badgeText}</span>
                   <small class="text-muted d-block mt-1">
                     <i class="fas fa-id-card me-1"></i>${record.uid}
                   </small>
-                </div>
-                <small class="text-muted">${record.time}</small>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (error) {
-        console.error("Error fetching attendance:", error);
-      }
-    }
-
-    async function fetchMotion() {
-      try {
-        let res = await fetch("http://localhost:3002/motion");
-        let motion = await res.json();
-
-        let motionList = document.getElementById("motionList");
-        
-        if (motion.length === 0) {
-          motionList.innerHTML = '<p class="no-data">No motion detected yet...</p>';
-        } else {
-          motionList.innerHTML = motion.map(record => `
-            <div class="motion-item p-3 mb-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <i class="fas fa-walking me-2" style="color: #f59e0b;"></i>
-                  <strong>Motion Detected</strong>
                 </div>
                 <small class="text-muted">
                   <i class="fas fa-clock me-1"></i>${record.time}
                 </small>
               </div>
             </div>
-          `).join('');
+          `;
+          }).join('');
+        }
+      } catch (error) {
+        console.error("Error fetching attendance:", error);
+        document.getElementById("attendanceList").innerHTML = 
+          '<div class="error-message">Failed to load attendance data</div>';
+      }
+    }
+
+    async function fetchMotion() {
+      try {
+        let res = await fetch("http://localhost:3002/motion");
+        if (!res.ok) throw new Error('Network response was not ok');
+        
+        let motion = await res.json();
+        let motionList = document.getElementById("motionList");
+        
+        // Check if data actually changed
+        if (JSON.stringify(motion) === JSON.stringify(lastMotionData)) {
+          return; // No changes, skip update
+        }
+        
+        // Check for new entries
+        const hasNewEntries = motion.length > lastMotionData.length;
+        lastMotionData = motion;
+        
+        if (motion.length === 0) {
+          motionList.innerHTML = '<p class="no-data">No motion detected yet...</p>';
+        } else {
+          motionList.innerHTML = motion.map((record, index) => {
+            const isNew = hasNewEntries && index === 0; // Latest entry is new
+            const itemClass = isNew ? 'motion-item new' : 'motion-item';
+            
+            return `
+            <div class="${itemClass} p-3 mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-walking me-2" style="color: #f59e0b;"></i>
+                  <strong>Back Door Motion</strong>
+                  ${isNew ? '<span class="badge ms-2" style="background: #dc2626;">NEW</span>' : ''}
+                </div>
+                <small class="text-muted">
+                  <i class="fas fa-clock me-1"></i>${record.time}
+                </small>
+              </div>
+            </div>
+          `;
+          }).join('');
         }
       } catch (error) {
         console.error("Error fetching motion:", error);
+        document.getElementById("motionList").innerHTML = 
+          '<div class="error-message">Failed to load motion data</div>';
       }
     }
 
@@ -349,12 +678,63 @@
       fetchStats();
       fetchAttendance();
       fetchMotion();
+      checkAndShowDuplicates(); // Check for duplicate attempts
+      
+      // Update last update time
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
     }
 
-    // Update every 2 seconds
-    setInterval(updateDashboard, 2000);
+    function startUpdates() {
+      // Clear any existing interval
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+      
+      // Update every 5 seconds instead of 2 for less aggressive refreshing
+      updateInterval = setInterval(updateDashboard, 5000);
+    }
+
+    function stopUpdates() {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+      }
+    }
+
+    // Initial load
     updateDashboard();
+    startUpdates();
+    
+    // Handle page visibility changes to pause/resume updates
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        stopUpdates(); // Pause updates when page is hidden
+      } else {
+        updateDashboard(); // Refresh immediately when page becomes visible
+        startUpdates(); // Resume updates
+      }
+    });
+
+    // Handle window focus/blur for better performance
+    window.addEventListener('focus', function() {
+      updateDashboard();
+      startUpdates();
+    });
+
+    window.addEventListener('blur', function() {
+      stopUpdates();
+    });
+
+    // Handle connection errors more gracefully
+    window.addEventListener('online', function() {
+      updateDashboard();
+      startUpdates();
+    });
+
+    window.addEventListener('offline', function() {
+      updateConnectionStatus(false);
+      stopUpdates();
+    });
   </script>
 </body>
 </html>
-
