@@ -11,8 +11,8 @@
 #include "esp_http_server.h"
 
 //Replace with your network credentials
-const char* ssid = "OnePlus Nord CE 3 Lite 5G";
-const char* password = "121225301";
+const char* ssid = "Galaxy M21";
+const char* password = "zmgl3258";
 
 typedef struct {
   httpd_req_t *req;

@@ -3,13 +3,13 @@ import urllib.request
 import numpy as np
 import time
 
-url = 'http://10.209.150.158:81/capture'
+url = 'http://10.23.7.158:81/capture'
 winName = 'ESP32 CAMERA'
 cv2.namedWindow(winName, cv2.WINDOW_AUTOSIZE)
 
-classFile = r'D:\Python code and lib\coco.names'
-configPath = r'D:\Python code and lib\ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = r'D:\Python code and lib\frozen_inference_graph.pb'
+classFile = r'Python code and lib/coco.names'
+configPath = r'Python code and lib/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
+weightsPath = r'Python code and lib/frozen_inference_graph.pb'
 
 classNames = []
 with open(classFile, 'rt') as f:
